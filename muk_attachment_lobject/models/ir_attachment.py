@@ -1,19 +1,22 @@
 ###################################################################################
 #
-#    Copyright (C) 2018 MuK IT GmbH
+#    Copyright (c) 2017-2019 MuK IT GmbH.
+#
+#    This file is part of MuK Large Objects Attachment 
+#    (see https://mukit.at).
 #
 #    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
+#    it under the terms of the GNU Lesser General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
+#    GNU Lesser General Public License for more details.
 #
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#    You should have received a copy of the GNU Lesser General Public License
+#    along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 ###################################################################################
 
@@ -74,7 +77,7 @@ class LObjectIrAttachment(models.Model):
                 '&', storage_domain[self._storage()], 
                 '|', ('res_field', '=', False), ('res_field', '!=', False)
             ]
-            self.search(record_domain).migrate()
+            self.search(record_domain).migrate(batch_size=100)
             return True
     
     #----------------------------------------------------------
@@ -100,8 +103,8 @@ class LObjectIrAttachment(models.Model):
     @api.multi
     def _inverse_datas(self):
         location = self._storage()
-        for attach in self:
-            if location == 'lobject':
+        if location == 'lobject':
+            for attach in self:
                 value = attach.datas
                 bin_data = base64.b64decode(value) if value else b''
                 vals = self._get_datas_inital_vals()
@@ -110,5 +113,5 @@ class LObjectIrAttachment(models.Model):
                 clean_vals = self._get_datas_clean_vals(attach)
                 models.Model.write(attach.sudo(), vals)
                 self._clean_datas_after_write(clean_vals)
-            else:
-                super(LObjectIrAttachment, attach)._inverse_datas()
+        else:
+            super(LObjectIrAttachment, self)._inverse_datas()
